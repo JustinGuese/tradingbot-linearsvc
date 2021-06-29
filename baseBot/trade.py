@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 def loadModel():
-    model = joblib.load("../models/linsvc.pickle")
+    model = joblib.load("./models/linsvc.pickle")
     return model
 
 if __name__ == '__main__':
@@ -26,7 +26,7 @@ if __name__ == '__main__':
     
     # cnrtPrice = df["Close"].tail(1).values[0]
     
-    crntframe = pd.read_csv("../logs/linearsvc.csv",parse_dates=['timestamp'])
+    crntframe = pd.read_csv("./logs/linearsvc.csv",parse_dates=['timestamp'])
     crntframe = crntframe.sort_values(by="timestamp",ascending=False)
     # crntframe = crntframe.set_index("timestamp")
     money = crntframe["money"][0]
@@ -67,7 +67,7 @@ if __name__ == '__main__':
     
     
     
-    crntframe.to_csv("../logs/linearsvc.csv",index=0)
+    crntframe.to_csv("./logs/linearsvc.csv",index=0)
     
     
     print(crntframe)

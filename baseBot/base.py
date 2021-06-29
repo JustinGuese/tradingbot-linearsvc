@@ -12,7 +12,7 @@ binance = ccxt.binance()
 symbol = 'ETH/USDT'
 timeframe = '1h'
 
-SCALERLOCATION = "../scalers/%s_scaler.pickle"%symbol.replace("/","")
+SCALERLOCATION = "./scalers/%s_scaler.pickle"%symbol.replace("/","")
 
 def tsToDatetime(input):
     return datetime.fromtimestamp(input/1000)

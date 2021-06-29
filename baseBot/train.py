@@ -57,7 +57,7 @@ def simulateTrading(df,pred,logging = True):
 def trainOnAll(df,y):
     clf = LinearSVC()
     clf.fit(df,y)   
-    joblib.dump(clf, "../models/linsvc.pickle")
+    joblib.dump(clf, "./models/linsvc.pickle")
 
 if __name__ == '__main__':
 
