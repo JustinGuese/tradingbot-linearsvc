@@ -7,8 +7,8 @@ from tqdm import tqdm
 
 
 def oneEpisode(row,multiplicator):
-    res = row * multiplicator
-    res = np.sum(res)
+    res = row * multiplicator 
+    res = np.average(res)
     return res
 
 def geneticEnvironment(df,unscaleddf):
@@ -16,6 +16,8 @@ def geneticEnvironment(df,unscaleddf):
     bestsetting = []
     for episode in tqdm(range(100)):
         multiplicator = np.random.rand(1,df.shape[1])
+        # print(multiplicator)
+        # print("sum multiplicator", np.sum(multiplicator))
         # maximum should be df.shape[1]
         # minimum should be 0
         # middle is df.shape[1]/2
@@ -28,30 +30,45 @@ def geneticEnvironment(df,unscaleddf):
         nrstocks = 0
         commission = .000125
 
-        for i in range(len(df)):
-            res = oneEpisode(df.iloc[i].values,multiplicator)
-            crntPrice = unscaleddf.iloc[i]["Close"]
-            if res > buythreshold:
-                # buy
-                howmany = int(money/crntPrice)
-                cost = howmany * crntPrice * (1+commission)
-                if cost > money:
-                    howmany -= 1
-                    cost = howmany * crntPrice * (1+commission)
-                money -= cost
-                nrstocks += howmany
+        # start from different points to validate non-randomeness. 
+        # TODO: randomize
 
-            elif res < sellthreshold:
-                # sell
-                cost = nrstocks * crntPrice * (1-commission)
-                money += cost
-                nrstocks = 0
-        # print("final value: ",money)
-        win = 20000 - money
-        if win > bestval:
-            bestval = win
-            bestsetting = multiplicator
-    print("best value: ",bestval)
+        startpoints = [0,quarter*2, quarter*3]
+        results = []
+        for startpos,start in enumerate(startpoints):
+            money = 20000
+            nrstocks = 0
+            for i in range(len(df)):
+                res = oneEpisode(df.iloc[i].values,multiplicator)
+                # todo: track min and max of allrowvalues, and take medium for decision 
+                crntPrice = unscaleddf.iloc[i]["Close"]
+                if res > buythreshold and nrstocks == 0:
+                    # buy
+                    howmany = int(money/crntPrice)
+                    cost = howmany * crntPrice * (1+commission)
+                    if cost > money:
+                        howmany -= 1
+                        cost = howmany * crntPrice * (1+commission)
+                    money -= cost
+                    nrstocks += howmany
+
+                elif res < sellthreshold and nrstocks > 0:
+                    # sell
+                    cost = nrstocks * crntPrice * (1-commission)
+                    money += cost
+                    nrstocks = 0
+            # print("final value: ",money)
+            win = 20000 - money
+            # adapt win to startpoint, e.g. when starting from 0 no multiplier, half *2, 3/4 times 4
+            winadapted = win * (startpos+1)
+            results.append(winadapted)
+        # final calculation for epoch
+        print(results,win)
+        if np.mean(results) > bestval:
+            bestval = np.mean(results)
+            bestsetting = [episode,bestval,multiplicator]
+            
+    print("best value: ",bestval, " episode: ",bestsetting[0])
 
 if __name__ == '__main__':
 
