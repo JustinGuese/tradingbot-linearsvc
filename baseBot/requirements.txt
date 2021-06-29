@@ -1,0 +1,5 @@
+pandas
+ccxt
+ta
+sklearn
+matplotlib
