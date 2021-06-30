@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 def oneEpisode(row,multiplicator):
     res = row * multiplicator 
-    res = np.average(res)
+    res = np.sum(res)
     return res
 
 def geneticEnvironment(df,unscaleddf):
@@ -35,40 +35,56 @@ def geneticEnvironment(df,unscaleddf):
 
         startpoints = [0,quarter*2, quarter*3]
         results = []
+        restracker = []
         for startpos,start in enumerate(startpoints):
             money = 20000
             nrstocks = 0
-            for i in range(len(df)):
+            notrades = 0
+            for i in range(start,len(df)):
                 res = oneEpisode(df.iloc[i].values,multiplicator)
-                # todo: track min and max of allrowvalues, and take medium for decision 
+                restracker.append(res)
+                buythreshold = np.percentile(restracker,90)
+                sellthreshold = np.percentile(restracker,5)
+                # print("current res values: mean %.2f, 75pct %.2f, 25pct %.2f"%(np.median(restracker),buythreshold,sellthreshold))
                 crntPrice = unscaleddf.iloc[i]["Close"]
                 if res > buythreshold and nrstocks == 0:
                     # buy
                     howmany = int(money/crntPrice)
-                    cost = howmany * crntPrice * (1+commission)
-                    if cost > money:
-                        howmany -= 1
+                    if howmany >= 0:
                         cost = howmany * crntPrice * (1+commission)
-                    money -= cost
-                    nrstocks += howmany
+                        if cost > money:
+                            howmany -= 1
+                            cost = howmany * crntPrice * (1+commission)
+                        money -= cost
+                        nrstocks += howmany
+                        notrades += 1
+                    else:
+                        print("game lost. no money, only minus! ",money)
 
                 elif res < sellthreshold and nrstocks > 0:
                     # sell
                     cost = nrstocks * crntPrice * (1-commission)
                     money += cost
                     nrstocks = 0
-            # print("final value: ",money)
-            win = 20000 - money
+                    notrades += 1
+            #  print("final value: ",money, "no trades: ",notrades)
+            win = money - 20000
+            
+            # justhold = howmany for start price, then how much it is worth in the end
+            justhold = int(20000/unscaleddf.iloc[start]["Close"] ) * unscaleddf.iloc[-1]["Close"]
+            # print("win vs justhold: ",win,justhold)
+            base_win = win - justhold # win compared to just holding
             # adapt win to startpoint, e.g. when starting from 0 no multiplier, half *2, 3/4 times 4
-            winadapted = win * (startpos+1)
-            results.append(winadapted)
+            base_winadapted = base_win * (startpos+1)
+            results.append(base_winadapted)
+            totalwin = base_winadapted + 20000
         # final calculation for epoch
-        print(results,win)
+        print(base_win)
         if np.mean(results) > bestval:
             bestval = np.mean(results)
-            bestsetting = [episode,bestval,multiplicator]
+            bestsetting = [episode,bestval,base_win,totalwin,buythreshold,sellthreshold,multiplicator]
             
-    print("best value: ",bestval, " episode: ",bestsetting[0])
+    print("Results: Best earnings of %.2f$ in %d days. Episode: %d. Buythreshold: %.2f, Sellthreshold: %.2f"%(bestval,len(df)/24,bestsetting[0],bestsetting[4],bestsetting[5]))
 
 if __name__ == '__main__':
 
