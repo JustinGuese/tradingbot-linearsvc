@@ -22,7 +22,7 @@ def geneticEnvironment(df,unscaleddf,NOREPETITIONS=10):
             # every episode try to change the multiplicator a little bit and see if it changes
             multiplicator = grand_multiplicator.copy()
             mutantvalue =  random.uniform(-2, 2)
-            multiplicator[episode] += mutantvalue
+            multiplicator[episode] *= mutantvalue
 
             # print(multiplicator)
             # print("sum multiplicator", np.sum(multiplicator))
@@ -51,8 +51,8 @@ def geneticEnvironment(df,unscaleddf,NOREPETITIONS=10):
                 for i in range(start,len(df)):
                     res = oneEpisode(df.iloc[i].values,multiplicator)
                     restracker.append(res)
-                    buythreshold = np.percentile(restracker,90)
-                    sellthreshold = np.percentile(restracker,5)
+                    buythreshold = np.percentile(restracker,75)
+                    sellthreshold = np.percentile(restracker,25)
                     # print("current res values: mean %.2f, 75pct %.2f, 25pct %.2f"%(np.median(restracker),buythreshold,sellthreshold))
                     crntPrice = unscaleddf.iloc[i]["Close"]
                     if res > buythreshold and nrstocks == 0:
@@ -89,11 +89,11 @@ def geneticEnvironment(df,unscaleddf,NOREPETITIONS=10):
             # final calculation for epoch
             
             if np.mean(results) > bestval:
-                print("new mutation at position %d! previous win: %.2f, new win: %.2f"%(episode,bestval,np.mean(results)))
+                print("new mutation at position %d! improvement %.2f$.  previous win: %.2f, new win: %.2f"%(episode,np.mean(results)-bestval,bestval,np.mean(results)))
                 bestval = np.mean(results)
                 bestsetting = [episode,bestval,base_win,totalwin,buythreshold,sellthreshold,multiplicator]
                 # if it is better, replace the grand multiplicators value with the current one
-                grand_multiplicator[episode] += mutantvalue
+                grand_multiplicator[episode] *= mutantvalue
             
     print("Results: Best earnings of %.2f$ in %d days. Episode: %d. Buythreshold: %.2f, Sellthreshold: %.2f"%(bestval,len(df)/24,bestsetting[0],bestsetting[4],bestsetting[5]))
 
