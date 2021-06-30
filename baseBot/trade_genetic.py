@@ -125,7 +125,7 @@ def geneticEnvironment(NOREPETITIONS=10):
         # calculate final improvement
         mutationbestval,_,_ = oneRun(0,noChange = True)
         changedollar = mutationbestval - baselinebestval
-        if changedollar < 0:
+        if changedollar < 0.01: # if smaller than one cent
             print("## Generation %d - genetic mutation rejected! Negative win of %.2f$"%(k+1,changedollar))
             noimprovementcounter += 1
             multiplicator = backup_multiplicator
