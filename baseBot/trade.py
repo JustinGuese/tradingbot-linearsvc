@@ -61,7 +61,8 @@ if __name__ == '__main__':
     
     # save new values
     # timestamp,money,nrstocks,crntprediction, crntPrice
-    addition = pd.DataFrame([[idx[-1],prediction,money,crntstocks,crntPrice]],columns=crntframe.columns)
+    totalmoney = money + crntstocks * crntPrice
+    addition = pd.DataFrame([[idx[-1],prediction,money,crntstocks,crntPrice,totalmoney]],columns=crntframe.columns)
     print(addition)
     crntframe = crntframe.append(addition)
     
